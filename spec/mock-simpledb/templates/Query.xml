@@ -1,0 +1,14 @@
+$def with (keys, nextToken, requestId)
+<?xml version="1.0"?>
+<QueryResponse xmlns="http://sdb.amazonaws.com/doc/2007-11-07/"> 
+<QueryResult> 
+$if nextToken is not None:
+	<NextToken>$nextToken=</NextToken> 
+$for key in keys:
+	<ItemName>$key</ItemName>
+</QueryResult> 
+<ResponseMetadata> 
+	<RequestId>$requestId</RequestId> 
+	<BoxUsage>0.0000219907</BoxUsage> 
+</ResponseMetadata> 
+</QueryResponse> 

@@ -1,0 +1,14 @@
+$def with (domainNames, nextToken, requestId)
+<?xml version="1.0"?>
+<ListDomainsResponse xmlns="http://sdb.amazonaws.com/doc/2007-11-07/"> 
+<ListDomainsResult>
+$if nextToken is not None:
+	<NextToken>$nextToken=</NextToken> 
+$for domainName in domainNames:
+	<DomainName>$domainName</DomainName>
+ </ListDomainsResult> 
+<ResponseMetadata> 
+	<RequestId>$requestId</RequestId> 
+	<BoxUsage>0.0000219907</BoxUsage> 
+</ResponseMetadata> 
+</ListDomainsResponse>

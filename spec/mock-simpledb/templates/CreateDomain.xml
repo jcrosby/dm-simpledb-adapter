@@ -1,0 +1,8 @@
+$def with (requestId)
+<?xml version="1.0"?>
+<CreateDomainResponse xmlns="http://sdb.amazonaws.com/doc/2007-11-07/">  
+	<ResponseMetadata> 
+		<RequestId>$requestId</RequestId> 
+		<BoxUsage>0.0000219907</BoxUsage> 
+	</ResponseMetadata> 
+</CreateDomainResponse>

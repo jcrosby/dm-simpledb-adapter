@@ -1,0 +1,19 @@
+$def with (items, nextToken, requestId)
+<?xml version="1.0"?>
+<QueryWithAttributesResponse xmlns="http://sdb.amazonaws.com/doc/2007-11-07/"> 
+<QueryWithAttributesResult>
+$if nextToken is not None:
+	<NextToken>$nextToken=</NextToken>
+$for itemName in items:
+	<Item> 
+		<Name>$itemName</Name> 
+	$for attributeName in items[itemName]:
+		$for attributeValue in items[itemName][attributeName]:
+			<Attribute><Name>$attributeName</Name><Value>$attributeValue</Value></Attribute> 
+	</Item> 
+</QueryWithAttributesResult> 
+<ResponseMetadata> 
+	<RequestId>$requestId</RequestId> 
+	<BoxUsage>0.0000219907</BoxUsage> 
+</ResponseMetadata> 
+</QueryWithAttributesResponse> 

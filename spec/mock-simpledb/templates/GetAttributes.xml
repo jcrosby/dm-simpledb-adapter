@@ -1,0 +1,13 @@
+$def with (item, requestId)
+<?xml version="1.0"?>
+<GetAttributesResponse xmlns="http://sdb.amazonaws.com/doc/2007-11-07/"> 
+	<GetAttributesResult> 
+		$for name in item:
+			$for value in item[name]:
+				<Attribute><Name>$name</Name><Value>$value</Value></Attribute> 
+	</GetAttributesResult> 
+	<ResponseMetadata> 
+		<RequestId>$requestId</RequestId> 
+		<BoxUsage>0.0000219907</BoxUsage> 
+	</ResponseMetadata> 
+</GetAttributesResponse> 
