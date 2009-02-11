@@ -21,7 +21,11 @@ module DataMapper
 
       def create(resources)
         resources.each do |resource|
-          resource.id = "#{Time.now.utc.to_i}:#{UUID.generate}"
+          # TODO consider compound key support
+          first_key = keys(resource)[0] rescue "At least one key required"
+          unless resource.instance_variable_get(first_key)
+            resource.instance_variable_set(first_key, "#{Time.now.utc.to_i}:#{UUID.generate}")
+          end
           @db.put_attributes(@domain, item_name(resource), resource.attributes)
         end.size
       end
@@ -41,7 +45,15 @@ module DataMapper
       protected
 
       def item_name(resource)
-        "#{resource.model}.#{resource.id}"
+        "#{resource.model}." + keys(resource).map do |key|
+          resource.instance_variable_get(key)
+        end.join(':')
+      end
+
+      def keys(resource)
+        resource.class.key(self.name).map do |property|
+          property.instance_variable_name
+        end
       end
 
       module Migration
