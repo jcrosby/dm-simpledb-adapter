@@ -9,7 +9,7 @@ require 'uuid'
 module DataMapper
   module Adapters
 
-    # A SimpleDB adapter for DataMapper built on the Rightscale gem.
+    # A SimpleDB adapter for DataMapper built on the RightScale gem.
     class SimpleDbAdapter < AbstractAdapter
 
       attr_reader :db
@@ -33,19 +33,19 @@ module DataMapper
       end
 
       def read_one(query)
-        sdb_query = query.conditions.map do |condition|
-          "[#{@db.escape(condition[1].name)} #{operator_for(condition[0])} #{@db.escape(condition[2])}]"
-        end.join(' intersection ') # TODO implement all set operations
-        items = @db.query(@domain, sdb_query)[:items] # TODO join with read_many
-        item = items[0]
+        item = items_for_query(query)[0]
         unless item == nil || item.empty?
-          attributes = @db.get_attributes(@domain, item)[:attributes]
-          data = query.fields.map { |f| attributes[f.field.to_s] }
-          query.model.load(data, query)
+          query.model.load(data_for_item_name(item, query), query)
         end
       end
 
       def read_many(query)
+        items = items_for_query(query)
+        Collection.new(query) do |set|
+          items.each do |item|
+            set.load(data_for_item_name(item, query))
+          end
+        end
       end
 
       def update(attributes, query)
@@ -58,6 +58,18 @@ module DataMapper
       end
 
       protected
+
+      def data_for_item_name(item, query)
+        attributes = @db.get_attributes(@domain, item)[:attributes]
+        query.fields.map { |f| attributes[f.field.to_s] }
+      end
+
+      def items_for_query(query)
+        sdb_query = query.conditions.map do |condition|
+          "[#{@db.escape(condition[1].name)} #{operator_for(condition[0])} #{@db.escape(condition[2])}]"
+        end.join(' intersection ') # TODO implement all set operations
+        @db.query(@domain, sdb_query)[:items]
+      end
 
       def operator_for(dm_symbol)
         # TODO implement all comparators

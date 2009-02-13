@@ -85,7 +85,25 @@ describe "SimpleDbAdapter" do
     fetched_document.uri.should == '/notes/123'
   end
 
-  it "gets many documents"
+  it "returns nil for Resource#get if the id is not found"
+
+  it "gets many documents" do
+    ['1', '2'].each do |id|
+      doc = Document.new(@default_data.merge(:id => id))
+      @dm.db.put_attributes('cloudkit', doc.id, doc.attributes)
+    end
+    no_match = Document.new(@default_data.merge(:id => 3, :content => '{x}'))
+    @dm.db.put_attributes('cloudkit', no_match.id, no_match.attributes)
+    documents = Document.all(:content => '{}')
+    documents.size.should == 2
+    documents.map { |d| ['1', '2'].include?(d.id).should be_true }
+  end
+
+  it "returns an empty array when no matches are found" do
+    doc = Document.new(@default_data.merge(:id => 'one'))
+    @dm.db.put_attributes('cloudkit', doc.id, doc.attributes)
+    Document.all(:id => 'fail').size.should == 0
+  end
 
   it "gets recent documents from the cache"
 end
