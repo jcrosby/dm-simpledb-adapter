@@ -14,6 +14,10 @@ describe "SimpleDbAdapter" do
       :logger     => Logger.new('test.log')})
     DataMapper.auto_migrate!
     @dm = DataMapper.repository(:default).adapter
+    @default_data = {
+      :uri         => '/notes/123',
+      :content     => '{}',
+      :remote_user => 'jethro'}
   end
 
   it "creates its storage" do
@@ -39,29 +43,28 @@ describe "SimpleDbAdapter" do
   it "destroys its storage" # including document.id keys
 
   it "stores a document" do
-    Document.create(
-      :uri     => '/notes/123',
-      :content => '{}')
+    document = Document.create(@default_data)
     @dm.db.query('cloudkit')[:items].size.should == 1
   end
 
-  it "sets the document's id" do
-    document = Document.create(
-      :uri     => '/notes/123',
-      :content => '{}')
+  it "sets the document's key if not provided" do
+    document = Document.create(@default_data)
     document.id.should_not be_nil
     document.id.should_not == ''
+  end
+
+  it "allows a custom key on create" do
+    document = Document.create(@default_data.merge(:id => 'x'))
+    document.id.should == 'x'
   end
 
   it "stores a document with a content attribute value larger than 1024K"
 
   it "updates a document" do
-    pending "implement"
-    document = Document.create(
-      :uri     => '/notes/123',
-      :content => '{}')
+    document = Document.create(@default_data)
     document.update_attributes(:uri => '/notes/777')
-    document.reload.uri.should == '/notes/777'
+    new_document = Document.get(document.id)
+    new_document.uri.should == '/notes/777'
   end
 
   it "updates many documents"
@@ -74,7 +77,13 @@ describe "SimpleDbAdapter" do
 
   it "deletes from the cache"
 
-  it "gets a document"
+  it "gets a document" do
+    document = Document.new(@default_data.merge(:id => 'myid'))
+    @dm.db.put_attributes('cloudkit', 'myitem', document.attributes)
+    fetched_document = Document.get(document.id)
+    fetched_document.id.should == document.id
+    fetched_document.uri.should == '/notes/123'
+  end
 
   it "gets many documents"
 

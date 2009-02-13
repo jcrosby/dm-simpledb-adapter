@@ -12,7 +12,7 @@ http://code.google.com/p/simpledb-dev/
 
 ===Test
 
-  $ rake start_local_sdb
+  $ rake db:start
   $ rake
 
 ===License

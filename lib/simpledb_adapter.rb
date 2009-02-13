@@ -1,5 +1,7 @@
 require 'rubygems'
+gem 'dm-core', '= 0.9.10'
 require 'dm-core'
+gem 'dm-validations', '= 0.9.10'
 require 'dm-validations'
 require 'right_aws'
 require 'uuid'
@@ -22,21 +24,34 @@ module DataMapper
       def create(resources)
         resources.each do |resource|
           # TODO consider compound key support
-          first_key = keys(resource)[0] rescue "At least one key required"
+          first_key = keys_for_resource(resource)[0] #rescue (raise "At least one key required")
           unless resource.instance_variable_get(first_key)
             resource.instance_variable_set(first_key, "#{Time.now.utc.to_i}:#{UUID.generate}")
           end
-          @db.put_attributes(@domain, item_name(resource), resource.attributes)
+          @db.put_attributes(@domain, item_name_for_resource(resource), resource.attributes)
         end.size
       end
 
       def read_one(query)
+        sdb_query = query.conditions.map do |condition|
+          "[#{@db.escape(condition[1].name)} #{operator_for(condition[0])} #{@db.escape(condition[2])}]"
+        end.join(' intersection ') # TODO implement all set operations
+        items = @db.query(@domain, sdb_query)[:items] # TODO join with read_many
+        item = items[0]
+        unless item == nil || item.empty?
+          attributes = @db.get_attributes(@domain, item)[:attributes]
+          data = query.fields.map { |f| attributes[f.field.to_s] }
+          query.model.load(data, query)
+        end
       end
 
       def read_many(query)
       end
 
       def update(attributes, query)
+        attributes = attributes.to_a.map { |a| [a[0].name, a[1]] }.to_hash
+        item_name = "#{query.model}.#{query.conditions[0][2]}"
+        @db.put_attributes(@domain, item_name, attributes, true) ? 1 : 0
       end
 
       def delete(query)
@@ -44,13 +59,20 @@ module DataMapper
 
       protected
 
-      def item_name(resource)
-        "#{resource.model}." + keys(resource).map do |key|
+      def operator_for(dm_symbol)
+        # TODO implement all comparators
+        case dm_symbol
+        when :eql; '='
+        end
+      end
+
+      def item_name_for_resource(resource)
+        "#{resource.model}." + keys_for_resource(resource).map do |key|
           resource.instance_variable_get(key)
         end.join(':')
       end
 
-      def keys(resource)
+      def keys_for_resource(resource)
         resource.class.key(self.name).map do |property|
           property.instance_variable_name
         end
