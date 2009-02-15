@@ -55,6 +55,8 @@ module DataMapper
       end
 
       def delete(query)
+        item = items_for_query(query)[0]
+        @db.delete_attributes(@domain, item) ? 1 : 0
       end
 
       protected

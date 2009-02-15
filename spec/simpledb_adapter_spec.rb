@@ -71,7 +71,12 @@ describe "SimpleDbAdapter" do
 
   it "caches on write"
 
-  it "deletes a document"
+  it "deletes a document" do
+    doc = Document.create(@default_data.merge(:id => 'one'))
+    Document.all(:id => 'one').size.should == 1
+    doc.destroy
+    @dm.db.query('cloudkit')[:items].size.should == 0
+  end
 
   it "deletes many documents"
 
