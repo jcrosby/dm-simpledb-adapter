@@ -58,8 +58,6 @@ describe "SimpleDbAdapter" do
     document.id.should == 'x'
   end
 
-  it "stores a document with a content attribute value larger than 1024K"
-
   it "updates a document" do
     document = Document.create(@default_data)
     document.update_attributes(:uri => '/notes/777')
@@ -67,7 +65,7 @@ describe "SimpleDbAdapter" do
     new_document.uri.should == '/notes/777'
   end
 
-  it "updates many documents"
+  it "updates many documents" # not sure if Document.all(:x => y).update!(:x => z) is the proper thing to do with DM
 
   it "caches on write"
 
@@ -112,5 +110,51 @@ describe "SimpleDbAdapter" do
     Document.all(:id => 'fail').size.should == 0
   end
 
+  it "finds using :gt"
+
+  it "finds using :gte"
+
+  it "finds using :lt"
+
+  it "finds using :lte"
+
+  it "finds using :not"
+
+  it "finds using SimpleDB's concept of ':like"
+
+  it "raises an exception when using not using SimpleDB's concept of :like"
+
+  it "finds using :in"
+
+  it "orders ascending on a field"
+
+  it "orders descending on a field"
+
   it "gets recent documents from the cache"
+
+  describe "complying with AWS restrictions" do
+
+    it "ensures domain names are 3-255 characters"
+
+    it "limits to 100 domain names"
+
+    it "limits attribute name/value pairs to 256 per item"
+
+    it "limits attribute names to 1024 bytes"
+
+    it "limits attribute value lengths to 1024 bytes" # should split over multiple values
+
+    it "limits to 100 attributes per PUT operation"
+
+    it "limits attributes per query to 256"
+
+    it "limits query expressions to 10 predicates"
+
+    it "limits unique attributes to 20 per select expression"
+
+    it "limits comparisons to 20 per select expression"
+
+    it "limits the response size for QueryWithAttributes and Select to 1MB"
+
+  end
 end
