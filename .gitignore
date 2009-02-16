@@ -1,4 +1,5 @@
 .DS_Store
 spec/mock-simpledb/data
 spec/mock-simpledb/simpledb_dev.pyc
+spec/mock-simpledb/portalocker.pyc
 test.log
