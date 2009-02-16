@@ -6,6 +6,8 @@ require 'dm-validations'
 require 'right_aws'
 require 'uuid'
 
+SIMPLEDB_RESERVED_ID_HACK = 'SIMPLEDB_RESERVED_ID_HACK'.freeze
+
 module DataMapper
   module Adapters
 
@@ -24,7 +26,7 @@ module DataMapper
       def create(resources)
         resources.each do |resource|
           # TODO consider compound key support
-          first_key = keys_for_resource(resource)[0] #rescue (raise "At least one key required")
+          first_key = keys_for_resource(resource)[0]
           unless resource.instance_variable_get(first_key)
             resource.instance_variable_set(first_key, "#{Time.now.utc.to_i}:#{UUID.generate}")
           end
@@ -67,7 +69,14 @@ module DataMapper
       end
 
       def items_for_query(query)
+        if query.order.size > 1
+          raise NotImplementedError.new("SimpleDB supports only a single order clause")
+        end
+        order_comparator_found = false
         sdb_query = query.conditions.map do |condition|
+          # SimpleDB requires that the item in the :order clause is contained in
+          # the :where expression so we are tracking it here
+          order_comparator_found = true if query.fields.map{ |f| f.field }.include?(condition[1])
           unless condition[2].is_a?(Array)
             "[#{@db.escape(condition[1].name)} #{operator_for(condition[0])} #{@db.escape(condition[2])}]"
           else
@@ -78,6 +87,14 @@ module DataMapper
             "[#{chain}]"
           end
         end.join(' intersection ')
+        order_spec = query.order[0]
+        if !order_comparator_found
+          if query.conditions.size > 0
+            sdb_query << " intersection "
+          end
+          sdb_query << "[#{@db.escape(order_spec.property.name)} != #{@db.escape(SIMPLEDB_RESERVED_ID_HACK)}]"
+        end
+        sdb_query << " sort #{@db.escape(order_spec.property.name)} #{order_spec.direction.to_s}"
         @db.query(@domain, sdb_query)[:items]
       end
 

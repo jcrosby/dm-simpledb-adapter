@@ -2,6 +2,13 @@ require File.expand_path(File.dirname(__FILE__)) + '/spec_helper'
 
 describe "SimpleDbAdapter" do
 
+  def insert_two_documents
+    ['1', '2'].each do |id|
+      doc = Document.new(@default_data.merge(:id => id, :uri => "/notes/#{id}"))
+      @dm.db.put_attributes('cloudkit', doc.id, doc.attributes)
+    end
+  end
+
   before(:each) do
     DataMapper.setup(:default, {
       :server     => 'localhost',
@@ -58,6 +65,8 @@ describe "SimpleDbAdapter" do
     document.id.should == 'x'
   end
 
+  it "raises an exception if a resource has no key"
+
   it "updates a document" do
     document = Document.create(@default_data)
     document.update_attributes(:uri => '/notes/777')
@@ -89,10 +98,7 @@ describe "SimpleDbAdapter" do
   end
 
   it "finds a document using first" do
-    ['1', '2'].each do |id|
-      doc = Document.new(@default_data.merge(:id => id, :uri => "/notes/#{id}"))
-      @dm.db.put_attributes('cloudkit', doc.id, doc.attributes)
-    end
+    insert_two_documents
     Document.first(:content => '{}').content.should == '{}'
   end
 
@@ -101,10 +107,7 @@ describe "SimpleDbAdapter" do
   end
 
   it "finds many documents using :eql" do
-    ['1', '2'].each do |id|
-      doc = Document.new(@default_data.merge(:id => id, :uri => "/notes/#{id}"))
-      @dm.db.put_attributes('cloudkit', doc.id, doc.attributes)
-    end
+    insert_two_documents
     no_match = Document.new(@default_data.merge(:id => 3, :uri => "/notes/3", :content => '{x}'))
     @dm.db.put_attributes('cloudkit', no_match.id, no_match.attributes)
     documents = Document.all(:content => '{}')
@@ -134,9 +137,15 @@ describe "SimpleDbAdapter" do
 
   it "finds using :in"
 
-  it "orders ascending on a field"
+  it "orders ascending on a field" do
+    insert_two_documents
+    Document.all(:order => [:uri.asc]).map{ |d| d.id }.should == ['1', '2']
+  end
 
-  it "orders descending on a field"
+  it "orders descending on a field" do
+    insert_two_documents
+    Document.all(:order => [:id.desc]).map{ |d| d.id }.should == ['2', '1']
+  end
 
   it "gets recent documents from the cache"
 
@@ -164,5 +173,10 @@ describe "SimpleDbAdapter" do
 
     it "limits the response size for QueryWithAttributes and Select to 1MB"
 
+    it "limits 'order by' to one expression" do
+      lambda do
+        Document.all(:order => [:id.desc, :uri.desc])
+      end.should raise_error(NotImplementedError)
+    end
   end
 end
