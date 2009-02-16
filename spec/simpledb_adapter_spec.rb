@@ -74,7 +74,7 @@ describe "SimpleDbAdapter" do
     new_document.uri.should == '/notes/777'
   end
 
-  it "updates many documents" # not sure if Document.all(:x => y).update!(:x => z) is the proper thing to do with DM
+  it "updates many documents"
 
   it "caches on write"
 
@@ -121,15 +121,38 @@ describe "SimpleDbAdapter" do
     Document.all(:id => 'fail').size.should == 0
   end
 
-  it "finds using :gt"
+  it "finds using :gt" do
+    insert_two_documents
+    result = Document.all(:id.gt => 1)
+    result.size.should == 1
+    result.first.id.should == '2'
+  end
 
-  it "finds using :gte"
+  it "finds using :gte" do
+    insert_two_documents
+    result = Document.all(:id.gte => 1)
+    result.size.should == 2
+  end
 
-  it "finds using :lt"
+  it "finds using :lt" do
+    insert_two_documents
+    result = Document.all(:id.lt => 2)
+    result.size.should == 1
+    result.first.id.should == '1'
+  end
 
-  it "finds using :lte"
+  it "finds using :lte" do
+    insert_two_documents
+    result = Document.all(:id.lte => 2)
+    result.size.should == 2
+  end
 
-  it "finds using :not"
+  it "finds using :not" do
+    insert_two_documents
+    result = Document.all(:id.not => 2)
+    result.size.should == 1
+    result.first.id.should == '1'
+  end
 
   it "finds using SimpleDB's concept of ':like"
 

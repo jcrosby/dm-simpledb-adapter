@@ -107,7 +107,7 @@ module DataMapper
         when :lte; '<='
         when :not; '!='
         else
-          # TODO implement :like, :in which require further query manipulation
+          # TODO implement :like and :in which require further query manipulation
           raise NotImplementedError.new("Operator #{dm_symbol} has not been implemented")
         end
       end
