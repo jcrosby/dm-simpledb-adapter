@@ -63,7 +63,7 @@ module DataMapper
 
       def data_for_item_name(item, query)
         attributes = @db.get_attributes(@domain, item)[:attributes]
-        query.fields.map { |f| attributes[f.field.to_s] }
+        query.fields.map { |f| attributes[f.field.to_s].join }
       end
 
       def items_for_query(query)

@@ -88,6 +88,14 @@ describe "SimpleDbAdapter" do
     fetched_document.uri.should == '/notes/123'
   end
 
+  it "finds a document using first" do
+    ['1', '2'].each do |id|
+      doc = Document.new(@default_data.merge(:id => id, :uri => "/notes/#{id}"))
+      @dm.db.put_attributes('cloudkit', doc.id, doc.attributes)
+    end
+    Document.first(:content => '{}').content.should == '{}'
+  end
+
   it "returns nil for Resource#get if the id is not found" do
     Document.get('x').should be_nil
   end
