@@ -82,7 +82,7 @@ describe "SimpleDbAdapter" do
 
   it "deletes from the cache"
 
-  it "gets a document" do
+  it "gets a document by its key" do
     document = Document.new(@default_data.merge(:id => 'myid'))
     @dm.db.put_attributes('cloudkit', 'myitem', document.attributes)
     fetched_document = Document.get(document.id)
@@ -90,14 +90,16 @@ describe "SimpleDbAdapter" do
     fetched_document.uri.should == '/notes/123'
   end
 
-  it "returns nil for Resource#get if the id is not found"
+  it "returns nil for Resource#get if the id is not found" do
+    Document.get('x').should be_nil
+  end
 
-  it "gets many documents" do
+  it "finds many documents using :eql" do
     ['1', '2'].each do |id|
-      doc = Document.new(@default_data.merge(:id => id))
+      doc = Document.new(@default_data.merge(:id => id, :uri => "/notes/#{id}"))
       @dm.db.put_attributes('cloudkit', doc.id, doc.attributes)
     end
-    no_match = Document.new(@default_data.merge(:id => 3, :content => '{x}'))
+    no_match = Document.new(@default_data.merge(:id => 3, :uri => "/notes/3", :content => '{x}'))
     @dm.db.put_attributes('cloudkit', no_match.id, no_match.attributes)
     documents = Document.all(:content => '{}')
     documents.size.should == 2

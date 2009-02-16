@@ -68,15 +68,30 @@ module DataMapper
 
       def items_for_query(query)
         sdb_query = query.conditions.map do |condition|
-          "[#{@db.escape(condition[1].name)} #{operator_for(condition[0])} #{@db.escape(condition[2])}]"
-        end.join(' intersection ') # TODO implement all set operations
+          unless condition[2].is_a?(Array)
+            "[#{@db.escape(condition[1].name)} #{operator_for(condition[0])} #{@db.escape(condition[2])}]"
+          else
+            # TODO assuming Array only happens along with :eql a la 'where ID in (1, 2, 3)'
+            chain = condition[2].map do |value|
+              "#{@db.escape(condition[1].name)} = #{@db.escape(value || 'NULL')}"
+            end.join(' or ')
+            "[#{chain}]"
+          end
+        end.join(' intersection ')
         @db.query(@domain, sdb_query)[:items]
       end
 
       def operator_for(dm_symbol)
-        # TODO implement all comparators
         case dm_symbol
         when :eql; '='
+        when :gt;  '>'
+        when :gte; '>='
+        when :lt;  '<'
+        when :lte; '<='
+        when :not; '!='
+        else
+          # TODO implement :like, :in which require further query manipulation
+          raise NotImplementedError.new("Operator #{dm_symbol} has not been implemented")
         end
       end
 
