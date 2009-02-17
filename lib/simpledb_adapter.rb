@@ -126,6 +126,7 @@ module DataMapper
 
       module Migration
         def storage_exists?(storage_name)
+          @db.list_domains[:domains].include?(@domain)
         end
 
         def create_model_storage(repository, model)
@@ -136,6 +137,10 @@ module DataMapper
           @db.list_domains[:domains].each do |domain|
             @db.delete_domain(domain)
           end # TODO consider only deleting matching type.* keys
+        end
+
+        def upgrade_model_storage(repository, model)
+          # not required in SimpleDB
         end
       end
 

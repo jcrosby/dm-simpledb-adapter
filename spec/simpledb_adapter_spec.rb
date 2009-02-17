@@ -45,7 +45,10 @@ describe "SimpleDbAdapter" do
     dm.db.list_domains[:domains].should == ['dm-simpledb']
   end
 
-  it "knows if its storage exists"
+  it "knows if its storage exists" do
+    @dm.storage_exists?('Document').should be_true
+    @dm.storage_exists?('View').should be_true
+  end
 
   it "destroys its storage" # including document.id keys
 
