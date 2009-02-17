@@ -46,11 +46,39 @@ describe "SimpleDbAdapter" do
   end
 
   it "knows if its storage exists" do
+    @dm.db.delete_domain('cloudkit')
+    DataMapper.setup(:default, {
+      :server     => 'localhost',
+      :adapter    => 'simpledb',
+      :access_key => 'fake',
+      :secret_key => 'fake',
+      :port       => '8080',
+      :protocol   => 'http',
+      :domain     => 'cloudkit',
+      :logger     => Logger.new('test.log')})
+    @dm.storage_exists?('Document').should be_false
+    @dm.storage_exists?('View').should be_false
+    DataMapper.auto_migrate!
     @dm.storage_exists?('Document').should be_true
     @dm.storage_exists?('View').should be_true
   end
 
-  it "destroys its storage" # including document.id keys
+  it "destroys its storage"
+
+  it "creates its storage during auto_upgrade if needed" do
+    @dm.db.delete_domain('cloudkit')
+    DataMapper.setup(:default, {
+      :server     => 'localhost',
+      :adapter    => 'simpledb',
+      :access_key => 'fake',
+      :secret_key => 'fake',
+      :port       => '8080',
+      :protocol   => 'http',
+      :domain     => 'cloudkit',
+      :logger     => Logger.new('test.log')})
+    DataMapper.auto_upgrade!
+    @dm.storage_exists?('Document').should be_true
+  end
 
   it "stores a document" do
     document = Document.create(@default_data)

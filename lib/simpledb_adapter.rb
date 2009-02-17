@@ -140,7 +140,9 @@ module DataMapper
         end
 
         def upgrade_model_storage(repository, model)
-          # not required in SimpleDB
+          unless storage_exists?(model)
+            create_model_storage(repository, model)
+          end
         end
       end
 
